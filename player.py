@@ -1,6 +1,6 @@
 import pygame
 from circleshape import CircleShape 
-from constants import PLAYER_RADIUS, LINE_WIDTH, PLAYER_TURN_SPEED, PLAYER_SPEED, PLAYER_SHOOT_SPEED
+from constants import PLAYER_SHOOT_COOLDOWN_SECONDS, PLAYER_RADIUS, LINE_WIDTH, PLAYER_TURN_SPEED, PLAYER_SPEED, PLAYER_SHOOT_SPEED
 from shot import Shot
 
 # defining player hit box as a circle, but we will draw it as a triangle
@@ -8,6 +8,7 @@ class Player(CircleShape):
     def __init__(self, x, y):
         super().__init__(x, y, PLAYER_RADIUS)
         self.rotation = 0
+        self.cooldown_timer = 0
 
     # spaceship will be drawn as a triangle
     def triangle(self) -> list[pygame.Vector2]:
@@ -26,6 +27,8 @@ class Player(CircleShape):
 
     def update(self, dt: float) -> None:
         keys = pygame.key.get_pressed()
+        if self.cooldown_timer > 0:
+            self.cooldown_timer -= dt
         if keys[pygame.K_a]:
             self.rotate(-dt)
         if keys[pygame.K_d]:
@@ -35,7 +38,10 @@ class Player(CircleShape):
         if keys[pygame.K_s]:
             self.move(-dt)
         if keys[pygame.K_SPACE]:
-            self.shoot()
+            if self.cooldown_timer <= 0:
+                self.shoot()
+                self.cooldown_timer = PLAYER_SHOOT_COOLDOWN_SECONDS
+
 
     def move(self, dt :float):
         unit_vector = pygame.Vector2(0, 1)
